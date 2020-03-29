@@ -6,6 +6,8 @@ import tarfile
 import os
 import cmd
 import sys
+import re
+import io
 from shutil import copy2
 
 main_analysis = None
@@ -37,7 +39,7 @@ class dockerAnalysis:
         archive_name = self.save_container()
         self.untar()
         self.manifest_analysis() # config = str, layers = list
-        print(self.container_layers)
+        #print(self.container_layers)
         #self.read_config()
 
     def systemexec(self, syscmd):
@@ -111,4 +113,37 @@ class dockerAnalysis:
             print("\n{}Layer creation{}: {}{}{}\n{}"                                                      \
                 .format(bcolors.OKGREEN, bcolors.ENDC, \
                         bcolors.OKBLUE, docker_main_config['history'][i]['created'].split('.')[0].replace('T',' '), bcolors.ENDC, \
-                        docker_main_config['history'][i]['created_by'].replace('\t','')))
+                        docker_main_config['history'][i]['created_by'].replace('\t','')))      
+
+    def search_items(self, item):
+        all_files = []
+        a = self.container_layers
+        for i in a:
+            old_stdout = sys.stdout
+            result = io.StringIO()
+            sys.stdout = result
+            tarfile.open(i).list(verbose=True)
+            sys.stdout = old_stdout
+            tmp = list(filter(None, result.getvalue().split('\n')))
+            for j in tmp:
+                j = list(filter(None, j.split(' ')))
+                all_files.append(dict([(i,j)]))
+        #print(all_files)
+        for k in all_files:
+            if re.search(item, list(k.values())[0][-1]): # get last element of the list in the dictionnary
+                print("\n\n{}{}{}\n\
+Timestamp: {}{} {}{}\n\
+Original file size: {}{}{}\n\
+Filename: {}{}{}".format(bcolors.OKGREEN, list(k.keys())[0], bcolors.ENDC, \
+                        bcolors.OKBLUE, list(k.values())[0][3], list(k.values())[0][4], bcolors.ENDC,\
+                        bcolors.FAIL, list(k.values())[0][2], bcolors.ENDC, \
+                        bcolors.WARNING, list(k.keys())[0].split('/')[0]+"/"+list(k.values())[0][-1], bcolors.ENDC))     
+
+    def extract_file(self, path):
+        tar_archive = path.split('/')[0]+"/layer.tar"
+        print(tar_archive)
+        tar_path = "/".join(path.split('/')[1:])
+        print(tar_path)
+        tmp_tar = tarfile.open(tar_archive)
+        print(tmp_tar)
+        tmp_tar.extract(tar_path)
