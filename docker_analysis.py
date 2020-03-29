@@ -131,6 +131,7 @@ class dockerAnalysis:
         #print(all_files)
         for k in all_files:
             if re.search(item, list(k.values())[0][-1]): # get last element of the list in the dictionnary
+                print(k.values())
                 print("\n\n{}{}{}\n\
 Timestamp: {}{} {}{}\n\
 Original file size: {}{}{}\n\
@@ -141,9 +142,6 @@ Filename: {}{}{}".format(bcolors.OKGREEN, list(k.keys())[0], bcolors.ENDC, \
 
     def extract_file(self, path):
         tar_archive = path.split('/')[0]+"/layer.tar"
-        print(tar_archive)
         tar_path = "/".join(path.split('/')[1:])
-        print(tar_path)
         tmp_tar = tarfile.open(tar_archive)
-        print(tmp_tar)
         tmp_tar.extract(tar_path)
