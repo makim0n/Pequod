@@ -9,6 +9,7 @@ import sys
 import re
 import io
 from shutil import copy2
+from docker_index_db import *
 
 main_analysis = None
 
@@ -39,18 +40,14 @@ class dockerAnalysis:
         archive_name = self.save_container()
         self.untar()
         self.manifest_analysis() # config = str, layers = list
-        #print(self.container_layers)
-        #self.read_config()
+        self.db_init()
 
-    def systemexec(self, syscmd):
-        os.system(syscmd)
-
-    def get_layers(self):
-        return self.container_layers
+    def db_init(self):
+        dbms = docker_index(SQLITE, dbname=("{}.sqlite".format(self.container_name.replace('/','_'))))
+        for i in self.container_layers:
+            layer_name = i.split('/')[0]
+            dbms.create_db_tables(layer_name)
     
-    def selectlayer(self, layer):
-        print("todo")
-
     def pull_without_auth(self):
         #client = docker.from_env()
         self.client_docker.images.pull(self.container_name) # Download image
