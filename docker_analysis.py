@@ -32,6 +32,7 @@ class dockerAnalysis:
     container_config = None
     container_layers = None
     client_docker = None
+    dbms = None
 
     def __init__(self, container):
         self.client_docker = docker.from_env()
@@ -41,12 +42,35 @@ class dockerAnalysis:
         self.untar()
         self.manifest_analysis() # config = str, layers = list
         self.db_init()
+        self.fill_db()
 
     def db_init(self):
-        dbms = docker_index(SQLITE, dbname=("{}.sqlite".format(self.container_name.replace('/','_'))))
+        self.dbms = docker_index(SQLITE, dbname=("{}.sqlite".format(self.container_name.replace('/','_'))))
         for i in self.container_layers:
             layer_name = i.split('/')[0]
-            dbms.create_db_tables(layer_name)
+            self.dbms.create_db_tables(layer_name)
+    
+    def fill_db(self):
+        for i in self.container_layers:
+            f = open(i, "rb")
+            tar = tarfile.open(fileobj=f, mode="r:")
+            layer = i.split('/')[0]
+            for j in tar:
+                filename = j.name
+                filesize = j.size
+                fileperm = j.mode
+                fileowner = j.uname
+                file_ts = j.mtime
+                if j.isfile():
+                    file_cont = str(tar.extractfile(j).read())[2:-1]
+                else:
+                    file_cont = "NOT A REGULAR FILE"
+                #print("Layer: {}\nFilename: {}\nSize: {}\nPerm: {}\nOwner: {}\nLast modification: {}\nContent: {}\n\n".format(\
+                #            layer, filename, filesize, fileperm, fileowner, file_ts, file_cont[:20]))
+                #insert_file_data(self, layer, file_id, name, size, perm, own, date, ts)
+                self.dbms.insert_file_data(layer, filename, filesize, fileperm, fileowner, file_ts, file_cont)
+                    
+
     
     def pull_without_auth(self):
         #client = docker.from_env()
