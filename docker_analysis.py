@@ -33,6 +33,7 @@ class dockerAnalysis:
     container_layers = None
     client_docker = None
     dbms = None
+    dict_table = {}
 
     def __init__(self, container):
         self.client_docker = docker.from_env()
@@ -48,7 +49,8 @@ class dockerAnalysis:
         self.dbms = docker_index(SQLITE, dbname=("{}.sqlite".format(self.container_name.replace('/','_'))))
         for i in self.container_layers:
             layer_name = i.split('/')[0]
-            self.dbms.create_db_tables(layer_name)
+            table = self.dbms.create_db_tables(layer_name)
+            self.dict_table[layer_name] = table
     
     def fill_db(self):
         for i in self.container_layers:
@@ -65,10 +67,7 @@ class dockerAnalysis:
                     file_cont = str(tar.extractfile(j).read())[2:-1]
                 else:
                     file_cont = "NOT A REGULAR FILE"
-                #print("Layer: {}\nFilename: {}\nSize: {}\nPerm: {}\nOwner: {}\nLast modification: {}\nContent: {}\n\n".format(\
-                #            layer, filename, filesize, fileperm, fileowner, file_ts, file_cont[:20]))
-                #insert_file_data(self, layer, file_id, name, size, perm, own, date, ts)
-                self.dbms.insert_file_data(layer, filename, filesize, fileperm, fileowner, file_ts, file_cont)
+                self.dbms.insert_file_data(self.dict_table[layer], filename, filesize, fileperm, fileowner, file_ts, file_cont)
                     
 
     
