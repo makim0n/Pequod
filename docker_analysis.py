@@ -36,6 +36,12 @@ class dockerAnalysis:
     dict_table = {}
 
     def __init__(self, container):
+        """
+        Class constructor, take container name as parameter (i.e. santactf/app)
+
+        :param container: Name of the docker container.
+        :type container: str
+        """
         self.client_docker = docker.from_env()
         self.container_name = container
         image = self.pull_without_auth()
@@ -43,9 +49,66 @@ class dockerAnalysis:
         self.untar()
         self.manifest_analysis() # config = str, layers = list
         self.db_init()
-        self.fill_db()
+        self.fill_db()                
+    
+    def pull_without_auth(self):
+        """
+        Download docker container on docker hub without authentication.
+        """
+        #client = docker.from_env()
+        self.client_docker.images.pull(self.container_name) # Download image
+        self.image = self.client_docker.images.get(self.container_name)
+        print("Image name: {}".format(self.image.tags[0]))
+        print("Image SHA256: {}".format(self.image.id))
+
+    def pull_with_auth(self):
+        print("TODO")
+        # https://docs.docker.com/engine/api/sdk/examples/#pull-an-image-with-authentication
+
+    def get_locale_image(self):
+        print("TODO")
+
+    def save_container(self):
+        """
+        Save the docker container as a tar archive.
+        """
+        #print(type(self.container_name))
+        self.archive_name = self.image.tags[0].split('/')[0]+'.tar'
+        save_image = self.client_docker.images.get(self.image.tags[0]).save()
+        f = open(self.archive_name,"wb")
+        for i in save_image:
+            f.write(i)
+        f.close()
+        print("Image written in: {}".format(self.archive_name))
+
+    def untar(self):
+        """
+        Uncompress the docker container tar archive.
+        """
+        self.folder = self.archive_name.split('.')[0]
+        os.mkdir(self.folder)
+        print("Folder {} created.".format(self.folder))
+        copy2(self.archive_name, self.folder)
+        print("{} copied in {}".format(self.archive_name, self.folder))
+        os.chdir(self.folder)
+        tar = tarfile.open(self.archive_name)
+        tar.extractall()
+        print("{} is extracted.".format(self.archive_name))
+        tar.close()
+
+    def manifest_analysis(self):
+        """
+        Get docker configuration in the "manifest.json" file.
+        """
+        with open("manifest.json", "r") as read_file:
+            data = json.load(read_file)
+        self.container_config = data[0]['Config']
+        self.container_layers = data[0]['Layers']
 
     def db_init(self):
+        """
+        Initialization of the database. Table name are docker container layer name.
+        """
         self.dbms = docker_index(SQLITE, dbname=("{}.sqlite".format(self.container_name.replace('/','_'))))
         for i in self.container_layers:
             layer_name = i.split('/')[0]
@@ -53,6 +116,9 @@ class dockerAnalysis:
             self.dict_table[layer_name] = table
     
     def fill_db(self):
+        """
+        Fill database with file and directory of each layer in the associate database table. 
+        """
         for i in self.container_layers:
             f = open(i, "rb")
             tar = tarfile.open(fileobj=f, mode="r:")
@@ -68,50 +134,9 @@ class dockerAnalysis:
                 else:
                     file_cont = "NOT A REGULAR FILE"
                 self.dbms.insert_file_data(self.dict_table[layer], filename, filesize, fileperm, fileowner, file_ts, file_cont)
-                    
 
-    
-    def pull_without_auth(self):
-        #client = docker.from_env()
-        self.client_docker.images.pull(self.container_name) # Download image
-        self.image = self.client_docker.images.get(self.container_name)
-        print("Image name: {}".format(self.image.tags[0]))
-        print("Image SHA256: {}".format(self.image.id))
 
-    def pull_with_auth(self):
-        print("TODO")
-        # https://docs.docker.com/engine/api/sdk/examples/#pull-an-image-with-authentication
-
-    def get_locale_image(self):
-        print("TODO")
-
-    def save_container(self):
-        #print(type(self.container_name))
-        self.archive_name = self.image.tags[0].split('/')[0]+'.tar'
-        save_image = self.client_docker.images.get(self.image.tags[0]).save()
-        f = open(self.archive_name,"wb")
-        for i in save_image:
-            f.write(i)
-        f.close()
-        print("Image written in: {}".format(self.archive_name))
-
-    def untar(self):
-        self.folder = self.archive_name.split('.')[0]
-        os.mkdir(self.folder)
-        print("Folder {} created.".format(self.folder))
-        copy2(self.archive_name, self.folder)
-        print("{} copied in {}".format(self.archive_name, self.folder))
-        os.chdir(self.folder)
-        tar = tarfile.open(self.archive_name)
-        tar.extractall()
-        print("{} is extracted.".format(self.archive_name))
-        tar.close()
-
-    def manifest_analysis(self):
-        with open("manifest.json", "r") as read_file:
-            data = json.load(read_file)
-        self.container_config = data[0]['Config']
-        self.container_layers = data[0]['Layers']
+### Not necessary functions
 
     # read_config('ddde36e2209357c424cca26ac5a0b46c2f864be797c053bed700422177ba7261.json')
     def read_config(self):
