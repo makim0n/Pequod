@@ -30,10 +30,10 @@ class DockerAnalysis:
         :type container: str
         """
         self.db = db
-        self.client_docker = docker.from_env()
         self.container_name = container
-        self.image = self.pull_without_auth()
-        self.archive_name = self.save_container()
+        self.client_docker = docker.from_env()
+        self.pull_without_auth()
+        self.save_container()
         self.untar()
         self.manifest_analysis() # config = str, layers = list
         self.fill_db()
@@ -57,8 +57,8 @@ class DockerAnalysis:
         #client = docker.from_env()
         self.client_docker.images.pull(self.container_name) # Download image
         self.image = self.client_docker.images.get(self.container_name)
-        print("Image name: {}".format(self.image.tags[0]))
-        print("Image SHA256: {}".format(self.image.id))
+        print(f"Image name: {self.image.tags[0]}")
+        print(f"Image SHA256: {self.image.id}")
 
     def save_container(self):
         """
@@ -71,7 +71,7 @@ class DockerAnalysis:
         for i in save_image:
             f.write(i)
         f.close()
-        print("Image written in: {}".format(self.archive_name))
+        print(f"Image written in: {self.archive_name}")
 
     def untar(self):
         """
@@ -79,13 +79,13 @@ class DockerAnalysis:
         """
         self.folder = self.archive_name.split('.')[0]
         os.mkdir(self.folder)
-        print("Folder {} created.".format(self.folder))
+        print(f"Folder {self.folder} created.")
         copy2(self.archive_name, self.folder)
-        print("{} copied in {}".format(self.archive_name, self.folder))
+        print(f"{self.archive_name} copied in {self.folder}")
         os.chdir(self.folder)
         tar = tarfile.open(self.archive_name)
         tar.extractall()
-        print("{} is extracted.".format(self.archive_name))
+        print(f"{self.archive_name} is extracted.")
         tar.close()
 
     def manifest_analysis(self):

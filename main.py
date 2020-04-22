@@ -26,7 +26,6 @@ if __name__ == "__main__":
     args = arguments_menu()
     with app.app_context():
         db.create_all()
-        print(db)
         main_analysis = DockerAnalysis(args.container, db)
     app.run()
 
