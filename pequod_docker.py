@@ -36,19 +36,28 @@ class DockerAnalysis:
         self.save_container()
         self.untar()
         self.manifest_analysis() # config = str, layers = list
-        self.fill_db()
+        #self.fill_db()
+        print("init done")
 
     def fill_db(self):
-        new_file = Files(filename='toto', \
-        file_size='18kb', \
-        file_perm='rwx', \
-        owner='maki', \
-        date='2020-04-03', \
-        timestamp='13:46:53', \
-        file_content='TOTOTRO', \
-        layer='layer1')
-        self.db.session.add(new_file)
-        self.db.session.commit()
+        for i in self.container_layers:
+            f = open(i, "rb")
+            tar = tarfile.open(fileobj=f, mode="r:")
+            layer = i.split('/')[0]
+            for j in tar:
+                if j.isfile():
+                    file_cont = str(tar.extractfile(j).read())[2:-1]
+                else:
+                    file_cont = "NOT A REGULAR FILE"
+                new_file = Files(filename=j.name, \
+                file_size=j.size, \
+                file_perm=j.mode, \
+                owner=j.uname, \
+                timestamp=j.mtime, \
+                file_content=file_cont, \
+                layer=layer)
+                self.db.session.add(new_file)
+                self.db.session.commit()
 
     def pull_without_auth(self):
         """

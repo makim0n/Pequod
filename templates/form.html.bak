@@ -1,0 +1,80 @@
+{% include 'head.html' %}
+<div class="container">
+  <div class="row">
+    <div class="col s12 m4 l3 teal lighten-2">
+        <img src="static/logo.jpg" alt="" class="circle">
+    </div>
+    <div class="col s12 m8 l9" >
+        <!-- <div class="container"> -->
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var elems = document.querySelectorAll('select');
+                    var instances = M.FormSelect.init(elems, options);
+                });
+            </script>
+            <form method="POST">
+                <input name="container" type="text" id="container" />
+                <label for="container">Docker container</label>
+                <select class="browser-default" id="getType" name="getType" onchange="display_hidden_fields();">
+                   <option value="" disabled selected>Advanced</option>
+                   <option>DockerHub</option>
+                   <option>Local</option>
+                   <option>Private repository</option>
+                   <option>AWS</option>
+                </select>
+                <div id="dockerhub" style="display:none;">
+                    <label for="dockerhub_username">Username</label>
+                    <input name="dockerhub_username" type="text" id="dockerhub_username" />
+                    <label for="dockerhub_password">Password</label>
+                    <input name="dockerhub_password" type="text" id="dockerhub_password" />
+                </div>
+                <div id="private" style="display:none;">
+                    <input name="private_username" type="text" id="private_username" />
+                    <label for="private_username">Username</label>
+                    <input name="private_password" type="text" id="private_password" />
+                    <label for="private_password">Password</label>
+                    <input name="private_host" type="text" id="private_host" />
+                    <label for="private_host">Remote host</label>
+                    <input name="private_port" type="text" id="private_port" /> 
+                    <label for="private_port">Remote port</label> 
+                </div>
+                <div id="aws" style="display:none;">
+                    <p>todo aws</p>
+                </div>          
+                <button class="btn waves-effect waves-light" type="submit" name="action">Submit
+                    <i class="material-icons right">send</i>
+                  </button>
+            </form>
+            <script>
+                function display_hidden_fields()
+                {
+                    var selected = document.getElementById("getType").value;
+                    
+                    document.getElementById("dockerhub").style.display = "none";
+                    document.getElementById("private").style.display = "none";
+                    document.getElementById("aws").style.display = "none";
+    
+                    if(selected == "DockerHub") {
+                        document.getElementById("dockerhub").style.display = "block";
+                    }
+                    else if (selected == "Private repository") {
+                        document.getElementById("private").style.display = "block";
+                    }
+                    else if (selected == "AWS") {
+                        document.getElementById("aws").style.display = "block";
+                    }
+                }
+            </script>
+        </div>
+    </div>
+  </div>
+
+
+
+
+        <!--JavaScript at end of body for optimized loading-->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    </div>
+    </body>
+</html>

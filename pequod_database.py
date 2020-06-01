@@ -20,7 +20,7 @@ class Files(db.Model):
     file_size     = db.Column(db.String(500))
     file_perm     = db.Column(db.String(500))
     owner         = db.Column(db.String(500))
-    date          = db.Column(db.String(500))
+    #date          = db.Column(db.String(500))
     timestamp     = db.Column(db.String(500))
     file_content  = db.Column(db.Text)
     layer         = db.Column(db.String(500))

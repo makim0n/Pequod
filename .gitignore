@@ -2,3 +2,5 @@ __pycache__
 db_example.py
 santactf*
 old
+test
+*.db

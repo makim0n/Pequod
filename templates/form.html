@@ -1,0 +1,71 @@
+{% include 'head.html' %}
+{% include 'banner.html' %}
+{% include 'page.html' %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('select');
+        var instances = M.FormSelect.init(elems, options);
+    });
+</script>
+
+<form action="/" method="POST">
+    <div class="form-group">
+        <label for="container">Container</label>
+        <input type="text" class="form-control" id="container" name="container" placeholder="Docker container" required />
+    </div>
+    <div class="form-group">
+        <label for="connectiontype">Connection type</label>
+        <select class="form-control" id="getType" name="getType" onchange="display_hidden_fields();">
+            <option value="" selected>Advanced</option>
+            <option>DockerHub</option>
+            <option>Local</option>
+            <option>Private repository</option>
+            <!--<option>AWS</option>-->
+        </select>
+    </div>
+    <div class="form-group">
+        <div id="dockerhub" style="display:none;">
+            <label for="dockerhub_username">Username</label>
+            <input class="form-control" type="text" id="dockerhub_username" placeholder="Docker username" />
+            <label for="dockerhub_password">Password</label>
+            <input class="form-control" type="text" id="dockerhub_password" placeholder="Docker username" />
+        </div>
+        <div id="private" style="display:none;">
+            <label for="private_username">Username</label>
+            <input class="form-control" type="text" id="private_username" placeholder="Docker username" />
+            <label for="private_password">Password</label>
+            <input class="form-control" type="text" id="private_password" placeholder="Docker username" />
+            <label for="private_host">Remote host</label>
+            <input class="form-control" type="text" id="private_host" placeholder="Docker username" />
+            <label for="private_port">Remote port</label> 
+            <input class="form-control" type="text" id="private_port" placeholder="Docker username" />
+        </div>
+        <!--<div id="aws" style="display:none;">
+            <p>todo aws</p>
+        </div>-->
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<script>
+    function display_hidden_fields()
+    {
+        var selected = document.getElementById("getType").value;
+        
+        document.getElementById("dockerhub").style.display = "none";
+        document.getElementById("private").style.display = "none";
+        //document.getElementById("aws").style.display = "none";
+
+        if(selected == "DockerHub") {
+            document.getElementById("dockerhub").style.display = "block";
+        }
+        else if (selected == "Private repository") {
+            document.getElementById("private").style.display = "block";
+        }
+        //else if (selected == "AWS") {
+        //    document.getElementById("aws").style.display = "block";
+        //}
+    }
+</script>
+{% include 'footer.html' %}
